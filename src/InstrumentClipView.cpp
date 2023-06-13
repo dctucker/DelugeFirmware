@@ -2534,7 +2534,7 @@ void InstrumentClipView::offsetNoteCodeAction(int newOffset) {
 
 	bool doingKit = (currentSong->currentClip->output->type == INSTRUMENT_TYPE_KIT);
 	bool inScaleMode = false;
-	
+
 	if (!doingKit) {
 		yVisualWithinOctave = getYVisualWithinOctaveFromYDisplay(lastAuditionedYDisplay);
 		inScaleMode = getCurrentClip()->isScaleModeClip();
@@ -2598,13 +2598,13 @@ doRenderRow:
 				currentSong->calculateNoteFrequencies();
 				// TODO: Need to ultimately call Sound::recalculateAllVoicePhaseIncrements() to get the change instantly audible.
 			}
-		
+
 			char buffer[12];
 			intToString(currentSong->centAdjustForNotesInTemperament[octaveAndNote.noteWithin], buffer);
 			numericDriver.displayPopup(buffer, 3, true);
 			return;
 		}
-    }
+	}
 
 	// Switch Drums, if we're in Kit mode
 	else {
@@ -3219,7 +3219,7 @@ int InstrumentClipView::setupForEnteringScaleMode(int newRootNote, int yDisplay)
 	else {
 		newRootNote = defaultRootNote;
 
-        // If there's a root-note (or its octave) currently onscreen, pin animation to that
+		// If there's a root-note (or its octave) currently onscreen, pin animation to that
 		for (int i = 0; i < displayHeight; i++) {
 			int thisNote = getCurrentClip()->getYNoteFromYDisplay(i, currentSong);
 
@@ -3560,7 +3560,7 @@ drawNormally:
 			if (currentUIMode == UI_MODE_SCALE_MODE_BUTTON_PRESSED) {
 				if (flashDefaultRootNoteOn) {
 					int yNote = getCurrentClip()->getYNoteFromYDisplay(yDisplay, currentSong);
-			    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
+					NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
 
 					if (octaveAndNote.noteWithin == 0) {
 						memcpy(thisColour, rowColour[yDisplay], 3);
@@ -3573,7 +3573,7 @@ drawNormally:
 				{
 					// If this is the root note, indicate
 					int yNote = getCurrentClip()->getYNoteFromYDisplay(yDisplay, currentSong);
-			    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
+					NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
 
 					if (octaveAndNote.noteWithin == 0) {
 						memcpy(thisColour, rowColour[yDisplay], 3);
@@ -3679,13 +3679,15 @@ int InstrumentClipView::verticalEncoderAction(int offset, bool inCardRoutine) {
 			if (!Buttons::isShiftButtonPressed()) {
 				offset = getMin((int)1, getMax((int)-1, offset));
 				getCurrentClip()->transpose(offset * currentSong->octaveNumMicrotonalNotes, modelStack);
-				if (getCurrentClip()->isScaleModeClip()) getCurrentClip()->yScroll += offset * (currentSong->numModeNotes - currentSong->octaveNumMicrotonalNotes);
+				if (getCurrentClip()->isScaleModeClip())
+					getCurrentClip()->yScroll +=
+					    offset * (currentSong->numModeNotes - currentSong->octaveNumMicrotonalNotes);
 				//numericDriver.displayPopup("OCTAVE");
 			}
 
 			// Otherwise, transpose single semitone
 			else {
-				// If current track not in scale-mode, just do it
+				// If current clip not in scale-mode, just do it
 				if (!getCurrentClip()->isScaleModeClip()) {
 					getCurrentClip()->transpose(offset, modelStack);
 

@@ -49,7 +49,6 @@ class ModelStackWithTimelineCounter;
 
 #define OCTAVE_MAX_NUM_MICROTONAL_NOTES 64
 
-
 class Section {
 public:
 	LearnedMIDI launchMIDICommand;
@@ -210,7 +209,6 @@ public:
 	int baseFrequency;
 	bool isEqualTemperament;
 
-
 	void setClipLength(Clip* clip, uint32_t newLength, Action* action, bool mayReSyncClip = true);
 	void doubleClipLength(InstrumentClip* clip, Action* action = NULL);
 	Clip* getClipWithOutput(Output* output, bool mustBeActive = false, Clip* excludeClip = NULL);
@@ -322,14 +320,13 @@ public:
 	int getRootNoteWithinOctave();
 	void noteCodeToString(int noteCode, char* buffer, int* getLengthWithoutDot = NULL);
 	void setNumNotesInTemperament(int newNumNotes);
-	
+
 	uint32_t getQuarterNoteLength();
 	uint32_t getBarLength();
 	ModelStackWithThreeMainThings* setupModelStackWithSongAsTimelineCounter(void* memory);
 	ModelStackWithTimelineCounter* setupModelStackWithCurrentClip(void* memory);
 	ModelStackWithThreeMainThings* addToModelStack(ModelStack* modelStack);
-	
-	
+
 	// Reverb params to be stored here between loading and song being made the active one
 	float reverbRoomSize;
 	float reverbDamp;

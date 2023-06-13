@@ -393,7 +393,8 @@ void Arpeggiator::switchNoteOn(ArpeggiatorSettings* settings, ArpReturnInstructi
 
 	ArpNote* arpNote = (ArpNote*)notes.getElementAddress(whichNoteCurrentlyOnPostArp);
 
-	noteCodeCurrentlyOnPostArp = arpNote->inputCharacteristics[MIDI_CHARACTERISTIC_NOTE] + (int)currentOctave * currentSong->octaveNumMicrotonalNotes;
+	noteCodeCurrentlyOnPostArp = arpNote->inputCharacteristics[MIDI_CHARACTERISTIC_NOTE]
+	                             + (int)currentOctave * currentSong->octaveNumMicrotonalNotes;
 
 	instruction->noteCodeOnPostArp = noteCodeCurrentlyOnPostArp;
 	instruction->arpNoteOn = arpNote;

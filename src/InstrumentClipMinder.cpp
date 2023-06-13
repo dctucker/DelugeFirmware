@@ -456,7 +456,7 @@ void InstrumentClipMinder::drawActualNoteCode(int16_t noteCode) {
 		writePos++;
 	}
 #endif
-    intToString(octaveAndNote.octave - 2, writePos, 1);
+	intToString(octaveAndNote.octave - 2, writePos, 1);
 
 #if HAVE_OLED
 	OLED::popupText(noteName, true);

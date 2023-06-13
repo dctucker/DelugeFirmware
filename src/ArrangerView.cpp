@@ -615,7 +615,7 @@ void ArrangerView::beginAudition(Output* output) {
 		else {
 			int note = currentSong->getRootNoteWithinOctave() + 60;
 			((MelodicInstrument*)instrument)
-				->beginAuditioningForNote(modelStack, note, instrument->defaultVelocity, zeroMPEValues);
+			    ->beginAuditioningForNote(modelStack, note, instrument->defaultVelocity, zeroMPEValues);
 		}
 	}
 }

@@ -932,7 +932,6 @@
 
 #define SAMPLE_RATE 44100
 
-
 #if HAVE_OLED
 #define BROWSER_AND_MENU_NUM_LINES 3
 #else

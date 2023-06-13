@@ -449,7 +449,7 @@ bool KeyboardScreen::renderMainPads(uint32_t whichRows, uint8_t image[][displayW
 	for (int p = 0; p < MAX_NUM_KEYBOARD_PAD_PRESSES; p++) {
 		if (padPresses[p].x != 255) {
 			int noteCode = getNoteCodeFromCoords(padPresses[p].x, padPresses[p].y);
-	    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(noteCode - currentSong->rootNote);
+			NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(noteCode - currentSong->rootNote);
 			notesWithinOctaveActive[octaveAndNote.noteWithin] = true;
 		}
 	}
@@ -463,7 +463,7 @@ bool KeyboardScreen::renderMainPads(uint32_t whichRows, uint8_t image[][displayW
 			for (int y = 0; y < displayHeight; y++) {
 				int noteCode = getNoteCodeFromCoords(0, y);
 				int yDisplay = noteCode - getCurrentClip()->yScrollKeyboardScreen;
-		    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(noteCode - defaultRootNote);
+				NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(noteCode - defaultRootNote);
 				for (int x = 0; x < displayWidth; x++) {
 
 					if (!octaveAndNote.noteWithin) {
