@@ -47,6 +47,9 @@ class AudioOutput;
 class ModelStack;
 class ModelStackWithTimelineCounter;
 
+#define OCTAVE_MAX_NUM_MICROTONAL_NOTES 64
+
+
 class Section {
 public:
 	LearnedMIDI launchMIDICommand;
@@ -61,7 +64,14 @@ struct BackedUpParamManager {
 	ParamManager paramManager;
 };
 
-class Song final : public TimelineCounter {
+struct NoteWithinOctave {
+	int octave;
+	int noteWithin;
+};
+
+
+class Song final : public TimelineCounter
+{
 public:
 	Song();
 	~Song();
@@ -190,10 +200,20 @@ public:
 
 	String dirPath;
 
+//<<<<<<< HEAD
 	bool getAnyClipsSoloing();
 	uint32_t getInputTickScale();
 	Clip* getSyncScalingClip();
 	void setInputTickScaleClip(Clip* clip);
+//=======
+    int32_t noteFrequenciesRelativeToKey[OCTAVE_MAX_NUM_MICROTONAL_NOTES];
+    int8_t centAdjustForNotesInTemperament[OCTAVE_MAX_NUM_MICROTONAL_NOTES];
+    int32_t noteFrequencyTable[OCTAVE_MAX_NUM_MICROTONAL_NOTES];
+    int octaveNumMicrotonalNotes;
+    int baseFrequency;
+    bool isEqualTemperament;
+
+//>>>>>>> microtuning
 
 	void setClipLength(Clip* clip, uint32_t newLength, Action* action, bool mayReSyncClip = true);
 	void doubleClipLength(InstrumentClip* clip, Action* action = NULL);
@@ -301,22 +321,72 @@ public:
 	                                          int whichBendRange, int bendSemitones);
 	int addInstrumentsToFileItems(int instrumentType);
 
-	uint32_t getQuarterNoteLength();
-	uint32_t getBarLength();
-	ModelStackWithThreeMainThings* setupModelStackWithSongAsTimelineCounter(void* memory);
-	ModelStackWithTimelineCounter* setupModelStackWithCurrentClip(void* memory);
-	ModelStackWithThreeMainThings* addToModelStack(ModelStack* modelStack);
+    bool anyOutputsSoloingInArrangement;
+    bool getAnyOutputsSoloingInArrangement();
+    void reassessWhetherAnyOutputsSoloingInArrangement();
+    bool isOutputActiveInArrangement(Output* output);
+    Output* getOutputFromIndex(int index);
+    void ensureAllInstrumentsHaveAClipOrBackedUpParamManager(char const* errorMessageNormal, char const* errorMessageHibernating);
+    int placeFirstInstancesOfActiveClips(int32_t pos);
+    void endInstancesOfActiveClips(int32_t pos, bool detachClipsToo = false);
+    void clearArrangementBeyondPos(int32_t pos, Action* action);
+    void deletingClipInstanceForClip(Output* output, Clip* clip, Action* action, bool shouldPickNewActiveClip);
+    bool arrangementHasAnyClipInstances();
+    void resumeClipsClonedForArrangementRecording();
+    bool isPlayingAutomationNow();
+    bool backtrackingCouldLoopBackToEnd();
+    int32_t getPosAtWhichPlaybackWillCut(ModelStackWithTimelineCounter const* modelStack);
+    void getActiveModControllable(ModelStackWithTimelineCounter* modelStack);
+    void expectEvent();
+    TimelineCounter* getTimelineCounterToRecordTo();
+    int32_t getLastProcessedPos();
+    void setParamsInAutomationMode(bool newState);
+    bool canOldOutputBeReplaced(Clip* clip, int* availabilityRequirement = NULL);
+    void instrumentSwapped(Instrument* newInstrument);
+    Instrument* changeInstrumentType(Instrument* oldInstrument, int newInstrumentType);
+    AudioOutput* getFirstAudioOutput();
+    AudioOutput* createNewAudioOutput(Output* replaceOutput = NULL);
+    void getNoteLengthName(char *text, uint32_t noteLength, bool clarifyPerColumn = false);
+    void replaceOutputLowLevel(Output* newOutput, Output* oldOutput);
+    void removeSessionClip(Clip* clip, int clipIndex, bool forceClipsAboveToMoveVertically = false);
+    bool deletePendingOverdubs(Output* onlyWithOutput = NULL, int* originalClipIndex = NULL, bool createConsequencesForOtherLinearlyRecordingClips = false);
+    Clip* getPendingOverdubWithOutput(Output* output);
+    Clip* getClipWithOutputAboutToBeginLinearRecording(Output* output);
+    Clip* createPendingNextOverdubBelowClip(Clip* clip, int clipIndex, int newOverdubNature);
+    bool hasAnyPendingNextOverdubs();
+    Output* getNextAudioOutput(int offset, Output* oldOutput, int availabilityRequirement);
+    void deleteOutput(Output* output);
+    void cullAudioClipVoice();
+    int getYScrollSongViewWithoutPendingOverdubs();
+    int removeOutputFromMainList(Output* output, bool stopAnyAuditioningFirst = true);
+    void swapClips(Clip* newClip, Clip* oldClip, int clipIndex);
+    Clip* replaceInstrumentClipWithAudioClip(Clip* oldClip, int clipIndex);
+    void setDefaultVelocityForAllInstruments(uint8_t newDefaultVelocity);
+    void midiDeviceBendRangeUpdatedViaMessage(ModelStack* modelStack, MIDIDevice* device, int channelOrZone, int whichBendRange, int bendSemitones);
+    int addInstrumentsToFileItems(int instrumentType);
+    void calculateNoteFrequencies();
+    NoteWithinOctave getOctaveAndNoteWithin(int noteCode);
+    int getRootNoteWithinOctave();
+    void noteCodeToString(int noteCode, char* buffer, int* getLengthWithoutDot = NULL);
+    void setNumNotesInTemperament(int newNumNotes);
 
-	// Reverb params to be stored here between loading and song being made the active one
-	float reverbRoomSize;
-	float reverbDamp;
-	float reverbWidth;
-	int32_t reverbPan;
-	int32_t reverbCompressorVolume;
-	int32_t reverbCompressorShape;
-	int32_t reverbCompressorAttack;
-	int32_t reverbCompressorRelease;
-	uint8_t reverbCompressorSync;
+    uint32_t getQuarterNoteLength();
+    uint32_t getBarLength();
+    ModelStackWithThreeMainThings* setupModelStackWithSongAsTimelineCounter(void* memory);
+    ModelStackWithTimelineCounter* setupModelStackWithCurrentClip(void* memory);
+    ModelStackWithThreeMainThings* addToModelStack(ModelStack* modelStack);
+
+
+    // Reverb params to be stored here between loading and song being made the active one
+    float reverbRoomSize;
+    float reverbDamp;
+    float reverbWidth;
+    int32_t reverbPan;
+    int32_t reverbCompressorVolume;
+    int32_t reverbCompressorShape;
+    int32_t reverbCompressorAttack;
+    int32_t reverbCompressorRelease;
+    uint8_t reverbCompressorSync;
 
 private:
 	void inputTickScalePotentiallyJustChanged(uint32_t oldScale);

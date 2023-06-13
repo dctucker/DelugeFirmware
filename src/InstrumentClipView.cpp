@@ -2532,19 +2532,26 @@ void InstrumentClipView::offsetNoteCodeAction(int newOffset) {
 
 	uint8_t yVisualWithinOctave;
 
-	// If in scale mode, need to check whether we're allowed to change scale..
-	if (getCurrentClip()->isScaleModeClip()) {
-		newOffset = getMax(-1, getMin(1, newOffset));
-		yVisualWithinOctave = getYVisualWithinOctaveFromYDisplay(lastAuditionedYDisplay);
+    bool doingKit = (currentSong->currentClip->output->type == INSTRUMENT_TYPE_KIT);
+    bool inScaleMode = false;
 
-		// If not allowed to move, blink the scale mode button to remind the user that that's why
-		if (!currentSong->mayMoveModeNote(yVisualWithinOctave, newOffset)) {
-			IndicatorLEDs::indicateAlertOnLed(scaleModeLedX, scaleModeLedY);
-			int noteCode = getCurrentClip()->getYNoteFromYDisplay(lastAuditionedYDisplay, currentSong);
-			drawActualNoteCode(noteCode); // Draw it again so that blinking stops temporarily
-			return;
+    if (!doingKit) {
+		yVisualWithinOctave = getYVisualWithinOctaveFromYDisplay(lastAuditionedYDisplay);
+		inScaleMode = getCurrentClip()->isScaleModeClip();
+
+		// If in scale mode, need to check whether we're allowed to change scale..
+		if (inScaleMode) {
+			newOffset = getMax(-1, getMin(1, newOffset));
+
+			// If not allowed to move, blink the scale mode button to remind the user that that's why
+			if (!currentSong->mayMoveModeNote(yVisualWithinOctave, newOffset)) {
+				IndicatorLEDs::indicateAlertOnLed(scaleModeLedX, scaleModeLedY);
+				int noteCode = getCurrentClip()->getYNoteFromYDisplay(lastAuditionedYDisplay, currentSong);
+				drawActualNoteCode(noteCode); // Draw it again so that blinking stops temporarily
+				return;
+			}
 		}
-	}
+    }
 
 	char modelStackMemory[MODEL_STACK_MAX_SIZE];
 	ModelStackWithTimelineCounter* modelStack = currentSong->setupModelStackWithCurrentClip(modelStackMemory);
@@ -2556,14 +2563,22 @@ void InstrumentClipView::offsetNoteCodeAction(int newOffset) {
 	// If we're in Kit mode, the NoteRow will exist, or else we wouldn't be auditioning it. But if in other mode, we need to do this
 	if (!noteRow) return; // Get out if NoteRow doesn't exist and can't be created
 
-	// Stop current note-sound from the NoteRow in question
-	if (playbackHandler.isEitherClockActive()) {
-		noteRow->stopCurrentlyPlayingNote(modelStackWithNoteRow);
-	}
+    if (doingKit || inScaleMode) {
+        // Stop current note-sound from the NoteRow in question
+   		if (playbackHandler.isEitherClockActive()) noteRow->stopCurrentlyPlayingNote(modelStackWithNoteRow);
 
-	// Stop the auditioning
-	auditionPadIsPressed[lastAuditionedYDisplay] = false;
-	reassessAuditionStatus(lastAuditionedYDisplay);
+   	    // Stop the auditioning
+   	    auditionPadIsPressed[lastAuditionedYDisplay] = false;
+   	    reassessAuditionStatus(lastAuditionedYDisplay);
+    }
+
+    if (!doingKit) {
+        // If in scale mode, edit the scale
+        if (inScaleMode) {
+            currentSong->changeMusicalMode(yVisualWithinOctave, newOffset);
+            // If we're shifting the root note, compensate scrolling
+            if (yVisualWithinOctave == 0) getCurrentClip()->yScroll += newOffset;
+            recalculateColour(lastAuditionedYDisplay); // Colour will have changed slightly
 
 	if (currentSong->currentClip->output->type != INSTRUMENT_TYPE_KIT) {
 		// If in scale mode, edit the scale
@@ -2577,11 +2592,25 @@ doRenderRow:
 			uiNeedsRendering(this, 1 << lastAuditionedYDisplay, 0);
 		}
 
-		// Otherwise, can't do anything - give error
-		else {
-			IndicatorLEDs::indicateAlertOnLed(scaleModeLedX, scaleModeLedY);
-		}
-	}
+        // Otherwise, do microtonal stuff!
+        else {
+            //IndicatorLEDs::indicateAlertOnLed(scaleModeLedX, scaleModeLedY);
+        	int yNote = getCurrentClip()->getYNoteFromYDisplay(lastAuditionedYDisplay, currentSong);
+        	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
+
+        	int newValue = currentSong->centAdjustForNotesInTemperament[octaveAndNote.noteWithin] + newOffset;
+        	if (newValue < 100 && newValue > -100) {
+        		currentSong->centAdjustForNotesInTemperament[octaveAndNote.noteWithin] = newValue;
+        		currentSong->calculateNoteFrequencies();
+        		// TODO: Need to ultimately call Sound::recalculateAllVoicePhaseIncrements() to get the change instantly audible.
+        	}
+
+        	char buffer[12];
+        	intToString(currentSong->centAdjustForNotesInTemperament[octaveAndNote.noteWithin], buffer);
+        	numericDriver.displayPopup(buffer, 3, true);
+        	return;
+        }
+    }
 
 	// Switch Drums, if we're in Kit mode
 	else {
@@ -3196,16 +3225,19 @@ int InstrumentClipView::setupForEnteringScaleMode(int newRootNote, int yDisplay)
 	else {
 		newRootNote = defaultRootNote;
 
-		// If there's a root-note (or its octave) currently onscreen, pin animation to that
-		for (int i = 0; i < displayHeight; i++) {
-			int thisNote = getCurrentClip()->getYNoteFromYDisplay(i, currentSong);
-			// If it's the root note...
-			if ((int)std::abs(newRootNote - thisNote) % 12 == 0) {
-				pinAnimationToYDisplay = i;
-				pinAnimationToYNote = thisNote;
-				goto doneLookingForRootNoteOnScreen;
-			}
-		}
+        // If there's a root-note (or its octave) currently onscreen, pin animation to that
+        for (int i = 0; i < displayHeight; i++) {
+            int thisNote = getCurrentClip()->getYNoteFromYDisplay(i, currentSong);
+
+        	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(newRootNote - thisNote);
+
+            // If it's the root note...
+            if (octaveAndNote.noteWithin == 0) {
+                pinAnimationToYDisplay = i;
+                pinAnimationToYNote = thisNote;
+                goto doneLookingForRootNoteOnScreen;
+            }
+        }
 
 		// Or if there wasn't an instance of the root note onscreen..
 		pinAnimationToYDisplay = 2;
@@ -3293,17 +3325,19 @@ void InstrumentClipView::enterScaleMode(uint8_t yDisplay) {
 int InstrumentClipView::setupForExitingScaleMode() {
 
 	int scrollAdjust;
-	// See if there's a root note onscreen
-	bool foundRootNoteOnScreen = false;
-	for (int i = 0; i < displayHeight; i++) {
-		int yNote = getCurrentClip()->getYNoteFromYDisplay(i, currentSong);
-		// If it's the root note...
-		if ((int)std::abs(currentSong->rootNote - yNote) % 12 == 0) {
-			scrollAdjust = yNote - i - getCurrentClip()->yScroll;
-			foundRootNoteOnScreen = true;
-			break;
-		}
-	}
+    // See if there's a root note onscreen
+    bool foundRootNoteOnScreen = false;
+    for (int i = 0; i < displayHeight; i++) {
+        int yNote = getCurrentClip()->getYNoteFromYDisplay(i, currentSong);
+    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote - currentSong->rootNote);
+
+        // If it's the root note...
+        if (octaveAndNote.noteWithin == 0) {
+            scrollAdjust = yNote - i - getCurrentClip()->yScroll;
+            foundRootNoteOnScreen = true;
+            break;
+        }
+    }
 
 	// Or if there wasn't an instance of the root note onscreen..
 	if (!foundRootNoteOnScreen)
@@ -3532,7 +3566,9 @@ drawNormally:
 			if (currentUIMode == UI_MODE_SCALE_MODE_BUTTON_PRESSED) {
 				if (flashDefaultRootNoteOn) {
 					int yNote = getCurrentClip()->getYNoteFromYDisplay(yDisplay, currentSong);
-					if ((uint16_t)(yNote - defaultRootNote + 120) % (uint8_t)12 == 0) {
+			    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
+
+					if (octaveAndNote.noteWithin == 0) {
 						memcpy(thisColour, rowColour[yDisplay], 3);
 						return;
 					}
@@ -3543,7 +3579,9 @@ drawNormally:
 				{
 					// If this is the root note, indicate
 					int yNote = getCurrentClip()->getYNoteFromYDisplay(yDisplay, currentSong);
-					if ((uint16_t)(yNote - currentSong->rootNote + 120) % (uint8_t)12 == 0) {
+			    	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(yNote);
+
+					if (octaveAndNote.noteWithin == 0) {
 						memcpy(thisColour, rowColour[yDisplay], 3);
 					}
 					else {
@@ -3643,14 +3681,13 @@ int InstrumentClipView::verticalEncoderAction(int offset, bool inCardRoutine) {
 			char modelStackMemory[MODEL_STACK_MAX_SIZE];
 			ModelStackWithTimelineCounter* modelStack = currentSong->setupModelStackWithCurrentClip(modelStackMemory);
 
-			// If shift button not pressed, transpose whole octave
-			if (!Buttons::isShiftButtonPressed()) {
-				offset = getMin((int)1, getMax((int)-1, offset));
-				getCurrentClip()->transpose(offset * 12, modelStack);
-				if (getCurrentClip()->isScaleModeClip())
-					getCurrentClip()->yScroll += offset * (currentSong->numModeNotes - 12);
-				//numericDriver.displayPopup("OCTAVE");
-			}
+            // If shift button not pressed, transpose whole octave
+            if (!Buttons::isShiftButtonPressed()) {
+                offset = getMin((int)1, getMax((int)-1, offset));
+                getCurrentClip()->transpose(offset * currentSong->octaveNumMicrotonalNotes, modelStack);
+                if (getCurrentClip()->isScaleModeClip()) getCurrentClip()->yScroll += offset * (currentSong->numModeNotes - currentSong->octaveNumMicrotonalNotes);
+                //numericDriver.displayPopup("OCTAVE");
+            }
 
 			// Otherwise, transpose single semitone
 			else {
