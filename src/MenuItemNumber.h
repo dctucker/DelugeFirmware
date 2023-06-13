@@ -24,7 +24,7 @@
 
 class MenuItemNumber : public MenuItemValue {
 public:
-	MenuItemNumber(char const* newName = NULL) ;
+	MenuItemNumber(char const* newName = NULL);
 
 	int basicMaxValue;
 	int basicMinValue;

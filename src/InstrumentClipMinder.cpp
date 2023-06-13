@@ -447,22 +447,22 @@ void InstrumentClipMinder::calculateDefaultRootNote() {
 void InstrumentClipMinder::drawActualNoteCode(int16_t noteCode) {
 	NoteWithinOctave octaveAndNote = currentSong->getOctaveAndNoteWithin(noteCode);
 
-    char noteName[5];
-    noteName[0] = noteCodeToNoteLetter[octaveAndNote.noteWithin];
-    char* writePos = &noteName[1];
+	char noteName[5];
+	noteName[0] = noteCodeToNoteLetter[octaveAndNote.noteWithin];
+	char* writePos = &noteName[1];
 #if HAVE_OLED
-    if (noteCodeIsSharp[octaveAndNote.noteWithin]) {
-    	*writePos = '#';
-    	writePos++;
-    }
+	if (noteCodeIsSharp[octaveAndNote.noteWithin]) {
+		*writePos = '#';
+		writePos++;
+	}
 #endif
-    intToString(octaveAndNote.octave - 2, writePos, 1);
+	intToString(octaveAndNote.octave - 2, writePos, 1);
 
 #if HAVE_OLED
 	OLED::popupText(noteName, true);
 #else
-    uint8_t drawDot = noteCodeIsSharp[octaveAndNote.noteWithin] ? 0 : 255;
-    numericDriver.setText(noteName, false, drawDot, true);
+	uint8_t drawDot = noteCodeIsSharp[octaveAndNote.noteWithin] ? 0 : 255;
+	numericDriver.setText(noteName, false, drawDot, true);
 #endif
 }
 

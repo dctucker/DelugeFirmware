@@ -92,14 +92,17 @@ InstrumentClip::InstrumentClip(Song* song) : Clip(CLIP_TYPE_INSTRUMENT) {
 	inScaleMode = (FlashStorage::defaultScale != PRESET_SCALE_NONE);
 	onKeyboardScreen = false;
 
-    if (song) {
-    	int yNote = song->getRootNoteWithinOctave() + 60;
-    	if (yNote > 66) yNote -= 12;
-    	yScroll = getYVisualFromYNote(yNote, song); // This takes into account the rootNote, which could be anything. Must be called after the above stuff is set up
-    }
-    else {
-    	yScroll = 0; // Only for safety. Shouldn't actually get here if we're not going to overwrite this elsewhere I think...
-    }
+	if (song) {
+		int yNote = song->getRootNoteWithinOctave() + 60;
+		if (yNote > 66) yNote -= 12;
+		yScroll = getYVisualFromYNote(
+		    yNote,
+		    song); // This takes into account the rootNote, which could be anything. Must be called after the above stuff is set up
+	}
+	else {
+		yScroll =
+		    0; // Only for safety. Shouldn't actually get here if we're not going to overwrite this elsewhere I think...
+	}
 	yScrollKeyboardScreen = 60 - (displayHeight >> 2) * KEYBOARD_ROW_INTERVAL;
 
 	instrumentTypeWhileLoading = 0;
@@ -1019,11 +1022,12 @@ ModelStackWithNoteRow* InstrumentClip::getOrCreateNoteRowForYNote(int yNote, Mod
 				if (action) {
 					void* consMemory = generalMemoryAllocator.alloc(sizeof(ConsequenceScaleAddNote));
 
-            		if (consMemory) {
-            	    	NoteWithinOctave octaveAndNote = modelStack->song->getOctaveAndNoteWithin(yNote);
-            			ConsequenceScaleAddNote* newConsequence = new (consMemory) ConsequenceScaleAddNote(octaveAndNote.noteWithin);
-            			action->addConsequence(newConsequence);
-            		}
+					if (consMemory) {
+						NoteWithinOctave octaveAndNote = modelStack->song->getOctaveAndNoteWithin(yNote);
+						ConsequenceScaleAddNote* newConsequence =
+						    new (consMemory) ConsequenceScaleAddNote(octaveAndNote.noteWithin);
+						action->addConsequence(newConsequence);
+					}
 
 					action->numModeNotes[AFTER] = modelStack->song->numModeNotes;
 					memcpy(action->modeNotes[AFTER], modelStack->song->modeNotes, sizeof(modelStack->song->modeNotes));
@@ -1103,97 +1107,98 @@ void InstrumentClip::expectNoFurtherTicks(Song* song, bool actuallySoundChange) 
 void InstrumentClip::stopAllNotesPlaying(ModelStackWithTimelineCounter* modelStack, bool actuallySoundChange) {
 	for (int i = 0; i < noteRows.getNumElements(); i++) {
 		NoteRow* thisNoteRow = noteRows.getElement(i);
-		ModelStackWithNoteRow* modelStackWithNoteRow = modelStack->addNoteRow(getNoteRowId(thisNoteRow, i), thisNoteRow);
-        thisNoteRow->stopCurrentlyPlayingNote(modelStackWithNoteRow, actuallySoundChange);
-    }
+		ModelStackWithNoteRow* modelStackWithNoteRow =
+		    modelStack->addNoteRow(getNoteRowId(thisNoteRow, i), thisNoteRow);
+		thisNoteRow->stopCurrentlyPlayingNote(modelStackWithNoteRow, actuallySoundChange);
+	}
 }
-
 
 // Returns false in rare case that there wasn't enough ram to do this
 NoteRow* InstrumentClip::createNewNoteRowForYVisual(int yVisual, Song* song) {
-    int y = getYNoteFromYVisual(yVisual, song);
-    return noteRows.insertNoteRowAtY(y);
+	int y = getYNoteFromYVisual(yVisual, song);
+	return noteRows.insertNoteRowAtY(y);
 }
 
-
 // Returns false in rare case that there wasn't enough ram to do this
-NoteRow* InstrumentClip::createNewNoteRowForKit(ModelStackWithTimelineCounter* modelStack, bool atStart, int* getIndex) {
+NoteRow* InstrumentClip::createNewNoteRowForKit(ModelStackWithTimelineCounter* modelStack, bool atStart,
+                                                int* getIndex) {
 
 	int index = atStart ? 0 : noteRows.getNumElements();
 
-    Drum* newDrum = ((Kit*)output)->getFirstUnassignedDrum(this);
+	Drum* newDrum = ((Kit*)output)->getFirstUnassignedDrum(this);
 
-    NoteRow* newNoteRow = noteRows.insertNoteRowAtIndex(index);
-    if (!newNoteRow) return NULL;
+	NoteRow* newNoteRow = noteRows.insertNoteRowAtIndex(index);
+	if (!newNoteRow) return NULL;
 
-    ModelStackWithNoteRow* modelStackWithNoteRow = modelStack->addNoteRow(index, newNoteRow);
+	ModelStackWithNoteRow* modelStackWithNoteRow = modelStack->addNoteRow(index, newNoteRow);
 
-    newNoteRow->setDrum(newDrum, (Kit*)output, modelStackWithNoteRow); // It might end up NULL. That's fine
+	newNoteRow->setDrum(newDrum, (Kit*)output, modelStackWithNoteRow); // It might end up NULL. That's fine
 
-    if (atStart) {
-        yScroll++;
+	if (atStart) {
+		yScroll++;
 
-        // Adjust colour offset, because colour offset is relative to the lowest NoteRow, and we just made a new lowest one
-        colourOffset--;
-    }
+		// Adjust colour offset, because colour offset is relative to the lowest NoteRow, and we just made a new lowest one
+		colourOffset--;
+	}
 
-    if (getIndex) *getIndex = index;
-    return newNoteRow;
+	if (getIndex) *getIndex = index;
+	return newNoteRow;
 }
-
 
 void InstrumentClip::getMainColourFromY(int yNote, int8_t noteRowColourOffset, uint8_t rgb[]) {
-    hueToRGB((yNote + colourOffset + noteRowColourOffset) * -8 / 3, rgb);
+	hueToRGB((yNote + colourOffset + noteRowColourOffset) * -8 / 3, rgb);
 }
 
-
-void InstrumentClip::musicalModeChanged(uint8_t yVisualWithinOctave, int change, ModelStackWithTimelineCounter* modelStack) {
-    if (!isScaleModeClip()) return;
-    // Find all NoteRows which belong to this yVisualWithinOctave, and change their note
+void InstrumentClip::musicalModeChanged(uint8_t yVisualWithinOctave, int change,
+                                        ModelStackWithTimelineCounter* modelStack) {
+	if (!isScaleModeClip()) return;
+	// Find all NoteRows which belong to this yVisualWithinOctave, and change their note
 	for (int i = 0; i < noteRows.getNumElements(); i++) {
 		NoteRow* thisNoteRow = noteRows.getElement(i);
-        if (modelStack->song->yNoteIsYVisualWithinOctave(thisNoteRow->y, yVisualWithinOctave)) {
-    		ModelStackWithNoteRow* modelStackWithNoteRow = modelStack->addNoteRow(getNoteRowId(thisNoteRow, i), thisNoteRow);
+		if (modelStack->song->yNoteIsYVisualWithinOctave(thisNoteRow->y, yVisualWithinOctave)) {
+			ModelStackWithNoteRow* modelStackWithNoteRow =
+			    modelStack->addNoteRow(getNoteRowId(thisNoteRow, i), thisNoteRow);
 
-            thisNoteRow->stopCurrentlyPlayingNote(modelStackWithNoteRow); // Otherwise we'd leave a MIDI note playing
-            thisNoteRow->y += change;
-        }
-    }
+			thisNoteRow->stopCurrentlyPlayingNote(modelStackWithNoteRow); // Otherwise we'd leave a MIDI note playing
+			thisNoteRow->y += change;
+		}
+	}
 }
 
 void InstrumentClip::noteRemovedFromMode(int yNoteWithinOctave, Song* song) {
-    if (!isScaleModeClip()) return;
+	if (!isScaleModeClip()) return;
 
-	for (int i = 0; i < noteRows.getNumElements(); ) {
+	for (int i = 0; i < noteRows.getNumElements();) {
 		NoteRow* thisNoteRow = noteRows.getElement(i);
 
-    	NoteWithinOctave octaveAndNote = song->getOctaveAndNoteWithin(thisNoteRow->y);
+		NoteWithinOctave octaveAndNote = song->getOctaveAndNoteWithin(thisNoteRow->y);
 
-        if (octaveAndNote.noteWithin == yNoteWithinOctave) {
-        	noteRows.deleteNoteRowAtIndex(i);
-        }
-        else i++;
+		if (octaveAndNote.noteWithin == yNoteWithinOctave) {
+			noteRows.deleteNoteRowAtIndex(i);
+		}
+		else i++;
 	}
 }
 
 // Only call this if using 12-tone system.
-void InstrumentClip::seeWhatNotesWithinOctaveArePresent(bool notesWithinOctavePresent[], int newRootNote, Song* song, bool deleteEmptyNoteRows) {
-    song->rootNote = newRootNote; // Not ideal to be setting the global root note here... but as it happens, there's no scenario (currently) where this would cause problems
+void InstrumentClip::seeWhatNotesWithinOctaveArePresent(bool notesWithinOctavePresent[], int newRootNote, Song* song,
+                                                        bool deleteEmptyNoteRows) {
+	song->rootNote =
+	    newRootNote; // Not ideal to be setting the global root note here... but as it happens, there's no scenario (currently) where this would cause problems
 
-
-	for (int i = 0; i < noteRows.getNumElements(); ) {
+	for (int i = 0; i < noteRows.getNumElements();) {
 		NoteRow* thisNoteRow = noteRows.getElement(i);
 
-        if (!thisNoteRow->hasNoNotes()) {
-            notesWithinOctavePresent[song->getYNoteWithinOctaveFromYNote(thisNoteRow->getNoteCode())] = true;
-            i++;
-        }
+		if (!thisNoteRow->hasNoNotes()) {
+			notesWithinOctavePresent[song->getYNoteWithinOctaveFromYNote(thisNoteRow->getNoteCode())] = true;
+			i++;
+		}
 
-        // If this NoteRow has no notes, delete it, otherwise we'll have problems as the musical mode is changed
-        else {
-        	noteRows.deleteNoteRowAtIndex(i);
-        }
-    }
+		// If this NoteRow has no notes, delete it, otherwise we'll have problems as the musical mode is changed
+		else {
+			noteRows.deleteNoteRowAtIndex(i);
+		}
+	}
 }
 
 // Returns false in rare case that there wasn't enough ram to do this
@@ -1364,8 +1369,9 @@ int InstrumentClip::getYNoteFromYVisual(int yVisual, Song* song) {
 int InstrumentClip::guessRootNote(Song* song, int previousRoot) {
 	if (song->octaveNumMicrotonalNotes != 12) return previousRoot;
 
-    bool notesPresent[12];
-    for (int i = 0; i < 12; i++) notesPresent[i] = false;
+	bool notesPresent[12];
+	for (int i = 0; i < 12; i++)
+		notesPresent[i] = false;
 
 	seeWhatNotesWithinOctaveArePresent(
 	    notesPresent, 0, song,
@@ -1404,16 +1410,15 @@ int InstrumentClip::guessRootNote(Song* song, int previousRoot) {
 			incompatibility = getMin(majorIncompatibility, minorIncompatibility);
 		}
 
-        if (
-                incompatibility < lowestIncompatibility ||
-                (incompatibility == lowestIncompatibility && (
-                     root == lowestNoteOctaveAndNote.noteWithin || root == previousRootOctaveAndNote.noteWithin // Favour the previous root and the lowest note
-                     ))
-                ) {
-            lowestIncompatibility = incompatibility;
-            mostViableRoot = root;
-        }
-    }
+		if (incompatibility < lowestIncompatibility
+		    || (incompatibility == lowestIncompatibility
+		        && (root == lowestNoteOctaveAndNote.noteWithin
+		            || root == previousRootOctaveAndNote.noteWithin // Favour the previous root and the lowest note
+		            ))) {
+			lowestIncompatibility = incompatibility;
+			mostViableRoot = root;
+		}
+	}
 
 	return mostViableRoot;
 }
@@ -2783,8 +2788,8 @@ noteRowFailed : {}
 useRootNote:
 		int rootNoteWithinOctave = song->getRootNoteWithinOctave();
 
-        chosenNoteRow->y = rootNoteWithinOctave + 60; // Just do this even if we're not in key-mode
-    }
+		chosenNoteRow->y = rootNoteWithinOctave + 60; // Just do this even if we're not in key-mode
+	}
 
 	// Now, give all the other NoteRows yNotes
 	int chosenNoteRowYVisual = song->getYVisualFromYNote(chosenNoteRow->y, inScaleMode);

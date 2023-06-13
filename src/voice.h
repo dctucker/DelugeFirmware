@@ -103,16 +103,29 @@ public:
 private:
 	//inline int32_t doFM(uint32_t *carrierPhase, uint32_t* lastShiftedPhase, uint32_t carrierPhaseIncrement, uint32_t phaseShift);
 
-    void renderOsc(int s, int type, int32_t amplitude, int32_t* thisSample, int32_t* bufferEnd, int numSamples, uint32_t phaseIncrementNow, uint32_t phaseWidth, uint32_t* thisPhase, bool applyAmplitude, int32_t amplitudeIncrement, bool doOscSync, uint32_t resetterPhase, uint32_t resetterPhaseIncrement, uint32_t retriggerPhase, int32_t waveIndexIncrement);
-    void renderBasicSource(Sound* sound, ParamManagerForTimeline* paramManager, int s, int32_t* oscBuffer, int numSamples, int32_t sourceAmplitude, bool* unisonPartBecameInactive, int32_t overallPitchAdjust, bool doOscSync, uint32_t* oscSyncPos, uint32_t* oscSyncPhaseIncrements, int32_t amplitudeIncrement, uint32_t* getPhaseIncrements, bool getOutAfterPhaseIncrements, int32_t waveIndexIncrement);
-    bool adjustPitch(uint32_t* phaseIncrement, int32_t adjustment);
+	void renderOsc(int s, int type, int32_t amplitude, int32_t* thisSample, int32_t* bufferEnd, int numSamples,
+	               uint32_t phaseIncrementNow, uint32_t phaseWidth, uint32_t* thisPhase, bool applyAmplitude,
+	               int32_t amplitudeIncrement, bool doOscSync, uint32_t resetterPhase, uint32_t resetterPhaseIncrement,
+	               uint32_t retriggerPhase, int32_t waveIndexIncrement);
+	void renderBasicSource(Sound* sound, ParamManagerForTimeline* paramManager, int s, int32_t* oscBuffer,
+	                       int numSamples, int32_t sourceAmplitude, bool* unisonPartBecameInactive,
+	                       int32_t overallPitchAdjust, bool doOscSync, uint32_t* oscSyncPos,
+	                       uint32_t* oscSyncPhaseIncrements, int32_t amplitudeIncrement, uint32_t* getPhaseIncrements,
+	                       bool getOutAfterPhaseIncrements, int32_t waveIndexIncrement);
+	bool adjustPitch(uint32_t* phaseIncrement, int32_t adjustment);
 
-    void renderSineWaveWithFeedback(int32_t* thisSample, int numSamples, uint32_t* phase, int32_t amplitude, uint32_t phaseIncrement, int32_t feedbackAmount, int32_t* lastFeedbackValue, bool add, int32_t amplitudeIncrement);
-    void renderFMWithFeedback(int32_t* thisSample, int numSamples, int32_t* fmBuffer, uint32_t* phase, int32_t amplitude, uint32_t phaseIncrement, int32_t feedbackAmount, int32_t* lastFeedbackValue, int32_t amplitudeIncrement);
-    void renderFMWithFeedbackAdd(int32_t* thisSample, int numSamples, int32_t* fmBuffer, uint32_t* phase, int32_t amplitude, uint32_t phaseIncrement, int32_t feedbackAmount, int32_t* lastFeedbackValue, int32_t amplitudeIncrement);
-    bool areAllUnisonPartsInactive(ModelStackWithVoice* modelStackWithVoice);
-    void setupPorta(ModelStackWithVoice* modelStack);
-    int32_t combineExpressionValues(Sound* sound, int whichExpressionDimension);
+	void renderSineWaveWithFeedback(int32_t* thisSample, int numSamples, uint32_t* phase, int32_t amplitude,
+	                                uint32_t phaseIncrement, int32_t feedbackAmount, int32_t* lastFeedbackValue,
+	                                bool add, int32_t amplitudeIncrement);
+	void renderFMWithFeedback(int32_t* thisSample, int numSamples, int32_t* fmBuffer, uint32_t* phase,
+	                          int32_t amplitude, uint32_t phaseIncrement, int32_t feedbackAmount,
+	                          int32_t* lastFeedbackValue, int32_t amplitudeIncrement);
+	void renderFMWithFeedbackAdd(int32_t* thisSample, int numSamples, int32_t* fmBuffer, uint32_t* phase,
+	                             int32_t amplitude, uint32_t phaseIncrement, int32_t feedbackAmount,
+	                             int32_t* lastFeedbackValue, int32_t amplitudeIncrement);
+	bool areAllUnisonPartsInactive(ModelStackWithVoice* modelStackWithVoice);
+	void setupPorta(ModelStackWithVoice* modelStack);
+	int32_t combineExpressionValues(Sound* sound, int whichExpressionDimension);
 
 	void renderSineWaveWithFeedback(int32_t* thisSample, int numSamples, uint32_t* phase, int32_t amplitude,
 	                                uint32_t phaseIncrement, int32_t feedbackAmount, int32_t* lastFeedbackValue,

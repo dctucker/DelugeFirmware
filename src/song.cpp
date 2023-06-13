@@ -127,21 +127,21 @@ Song::Song() : backedUpParamManagers(sizeof(BackedUpParamManager)) {
 	reverbCompressorShape = -601295438;
 	reverbCompressorSync = 6;
 
-    octaveNumMicrotonalNotes = 12;
-    isEqualTemperament = true;
-    baseFrequency = 815363807; // That's a C, at A=440
-    setNumNotesInTemperament(12);
+	octaveNumMicrotonalNotes = 12;
+	isEqualTemperament = true;
+	baseFrequency = 815363807; // That's a C, at A=440
+	setNumNotesInTemperament(12);
 
-    // Setup reverb temp variables
-    reverbRoomSize = (float)30 / 50;
-    reverbDamp = (float)36 / 50;
-    reverbWidth = 1;
-    reverbPan = 0;
-    reverbCompressorVolume = getParamFromUserValue(PARAM_STATIC_COMPRESSOR_VOLUME, -1);
-    reverbCompressorShape = -601295438;
-    reverbCompressorSync = 6;
+	// Setup reverb temp variables
+	reverbRoomSize = (float)30 / 50;
+	reverbDamp = (float)36 / 50;
+	reverbWidth = 1;
+	reverbPan = 0;
+	reverbCompressorVolume = getParamFromUserValue(PARAM_STATIC_COMPRESSOR_VOLUME, -1);
+	reverbCompressorShape = -601295438;
+	reverbCompressorSync = 6;
 
-    dirPath.set("SONGS");
+	dirPath.set("SONGS");
 }
 
 Song::~Song() {
@@ -412,38 +412,43 @@ traverseClips:
 void Song::setRootNote(int newRootNote, InstrumentClip* clipToAvoidAdjustingScrollFor) {
 
 	int oldRootNote = rootNote;
-    rootNote = newRootNote;
-    int oldNumModeNotes = numModeNotes;
+	rootNote = newRootNote;
+	int oldNumModeNotes = numModeNotes;
 
-    if (octaveNumMicrotonalNotes == 12) {
+	if (octaveNumMicrotonalNotes == 12) {
 		bool notesWithinOctavePresent[12];
-		for (int i = 0; i < 12; i++) notesWithinOctavePresent[i] = false;
+		for (int i = 0; i < 12; i++)
+			notesWithinOctavePresent[i] = false;
 
 		// All InstrumentClips in session and arranger
 		ClipArray* clipArray = &sessionClips;
-	traverseClips:
+traverseClips:
 		for (int c = 0; c < clipArray->getNumElements(); c++) {
 			Clip* clip = clipArray->getClipAtIndex(c);
 			if (clip->type != CLIP_TYPE_INSTRUMENT) continue;
 			InstrumentClip* instrumentClip = (InstrumentClip*)clip;
 
-			if (instrumentClip->isScaleModeClip()) instrumentClip->seeWhatNotesWithinOctaveArePresent(notesWithinOctavePresent, rootNote, this);
+			if (instrumentClip->isScaleModeClip())
+				instrumentClip->seeWhatNotesWithinOctaveArePresent(notesWithinOctavePresent, rootNote, this);
 		}
-		if (clipArray != &arrangementOnlyClips) { clipArray = &arrangementOnlyClips; goto traverseClips; }
+		if (clipArray != &arrangementOnlyClips) {
+			clipArray = &arrangementOnlyClips;
+			goto traverseClips;
+		}
 
-	// Determine the majorness or minorness of the scale
-	int majorness = 0;
+		// Determine the majorness or minorness of the scale
+		int majorness = 0;
 
-	// The 3rd is the main indicator of majorness, to my ear
-	if (notesWithinOctavePresent[4]) majorness++;
-	if (notesWithinOctavePresent[3]) majorness--;
+		// The 3rd is the main indicator of majorness, to my ear
+		if (notesWithinOctavePresent[4]) majorness++;
+		if (notesWithinOctavePresent[3]) majorness--;
 
-	// If it's still a tie, try the 2nd, 6th, and 7th to help us decide
-	if (majorness == 0) {
-		if (notesWithinOctavePresent[1]) majorness--;
-		if (notesWithinOctavePresent[8]) majorness--;
-		if (notesWithinOctavePresent[9]) majorness++;
-	}
+		// If it's still a tie, try the 2nd, 6th, and 7th to help us decide
+		if (majorness == 0) {
+			if (notesWithinOctavePresent[1]) majorness--;
+			if (notesWithinOctavePresent[8]) majorness--;
+			if (notesWithinOctavePresent[9]) majorness++;
+		}
 
 		// Determine the majorness or minorness of the scale
 		int majorness = 0;
@@ -501,14 +506,16 @@ void Song::setRootNote(int newRootNote, InstrumentClip* clipToAvoidAdjustingScro
 
 		// 7th
 		addMajorDependentModeNotes(10, moreMajor, notesWithinOctavePresent);
-    }
+	}
 
-    // Adjust scroll for Clips with the scale. Crudely - not as high quality as happens for the Clip being processed in instrumentClipView.enterScaleMode();
-    int numMoreNotes = (int)numModeNotes - oldNumModeNotes;
+	// Adjust scroll for Clips with the scale. Crudely - not as high quality as happens for the Clip being processed in instrumentClipView.enterScaleMode();
+	int numMoreNotes = (int)numModeNotes - oldNumModeNotes;
 
-    // Compensation for the change in root note itself
-    int rootNoteChange = rootNote - oldRootNote;
-    int rootNoteChangeEffect = rootNoteChange * (octaveNumMicrotonalNotes - numModeNotes) / octaveNumMicrotonalNotes; // I wasn't quite sure whether this should use numModeNotes or oldNumModeNotes
+	// Compensation for the change in root note itself
+	int rootNoteChange = rootNote - oldRootNote;
+	int rootNoteChangeEffect =
+	    rootNoteChange * (octaveNumMicrotonalNotes - numModeNotes)
+	    / octaveNumMicrotonalNotes; // I wasn't quite sure whether this should use numModeNotes or oldNumModeNotes
 
 	// Compensation for the change in root note itself
 	int rootNoteChange = rootNote - oldRootNote;
@@ -516,7 +523,7 @@ void Song::setRootNote(int newRootNote, InstrumentClip* clipToAvoidAdjustingScro
 	                           / 12; // I wasn't quite sure whether this should use numModeNotes or oldNumModeNotes
 
 	// All InstrumentClips in session and arranger
-    ClipArray* clipArray = &sessionClips;
+	ClipArray* clipArray = &sessionClips;
 traverseClips2:
 	for (int c = 0; c < clipArray->getNumElements(); c++) {
 		Clip* clip = clipArray->getClipAtIndex(c);
@@ -571,7 +578,7 @@ bool Song::yNoteIsYVisualWithinOctave(int yNote, int yVisualWithinOctave) {
 
 uint8_t Song::getYNoteWithinOctaveFromYNote(int yNote) {
 	NoteWithinOctave octaveAndNote = getOctaveAndNoteWithin(yNote - rootNote);
-    return octaveAndNote.noteWithin;
+	return octaveAndNote.noteWithin;
 }
 
 bool Song::modeContainsYNote(int yNote) {
@@ -627,12 +634,13 @@ bool Song::isYNoteAllowed(int yNote, bool inKeyMode) {
 }
 
 int Song::getYVisualFromYNote(int yNote, bool inKeyMode) {
-    if (!inKeyMode) return yNote;
+	if (!inKeyMode) return yNote;
 
 	NoteWithinOctave octaveAndNote = getOctaveAndNoteWithin(yNote - rootNote);
-    int yVisualWithinOctave = 0;
-    for (int i = 0; i < numModeNotes && modeNotes[i] <= octaveAndNote.noteWithin; i++) yVisualWithinOctave = i;
-    return yVisualWithinOctave + octaveAndNote.octave * numModeNotes + rootNote;
+	int yVisualWithinOctave = 0;
+	for (int i = 0; i < numModeNotes && modeNotes[i] <= octaveAndNote.noteWithin; i++)
+		yVisualWithinOctave = i;
+	return yVisualWithinOctave + octaveAndNote.octave * numModeNotes + rootNote;
 }
 
 int Song::getYNoteFromYVisual(int yVisual, bool inKeyMode) {
@@ -643,30 +651,33 @@ int Song::getYNoteFromYVisual(int yVisual, bool inKeyMode) {
 
 	int octave = (yVisualRelativeToRoot - yVisualWithinOctave) / numModeNotes;
 
-    int yNoteWithinOctave = modeNotes[yVisualWithinOctave];
-    return yNoteWithinOctave + octave * octaveNumMicrotonalNotes + rootNote;
+	int yNoteWithinOctave = modeNotes[yVisualWithinOctave];
+	return yNoteWithinOctave + octave * octaveNumMicrotonalNotes + rootNote;
 }
 
 bool Song::mayMoveModeNote(int16_t yVisualWithinOctave, int8_t newOffset) {
-    // If it's the root note and moving down, special criteria
-    if (yVisualWithinOctave == 0 && newOffset == -1) {
-        return (modeNotes[numModeNotes - 1] < octaveNumMicrotonalNotes - 1); // May ony move down if the top note in scale isn't directly below (at semitone 11)
-    }
+	// If it's the root note and moving down, special criteria
+	if (yVisualWithinOctave == 0 && newOffset == -1) {
+		return (modeNotes[numModeNotes - 1]
+		        < octaveNumMicrotonalNotes
+		              - 1); // May ony move down if the top note in scale isn't directly below (at semitone 11)
+	}
 
-    else return (
-                (
-                    newOffset == 1 && // We're moving up and
-                    modeNotes[yVisualWithinOctave] < octaveNumMicrotonalNotes - 1 && // We're not already at the top of the scale and
-                    (yVisualWithinOctave == numModeNotes - 1 || // Either we're the top note, so don't need to check for a higher neighbour
-                     modeNotes[yVisualWithinOctave + 1] > modeNotes[yVisualWithinOctave] + 1) // Or the next note up has left us space to move up
-                )
-            ||
-            (
-                newOffset == -1 && // We're moving down and
-                modeNotes[yVisualWithinOctave] > 1 && // We're not already at the bottom of the scale (apart from the root note) and
-                modeNotes[yVisualWithinOctave - 1] < modeNotes[yVisualWithinOctave] - 1 // The next note down has left us space to move down
-            )
-            );
+	else
+		return ((newOffset == 1 && // We're moving up and
+		         modeNotes[yVisualWithinOctave] < octaveNumMicrotonalNotes - 1
+		         && // We're not already at the top of the scale and
+		         (yVisualWithinOctave == numModeNotes - 1
+		          || // Either we're the top note, so don't need to check for a higher neighbour
+		          modeNotes[yVisualWithinOctave + 1]
+		              > modeNotes[yVisualWithinOctave] + 1) // Or the next note up has left us space to move up
+		         )
+		        || (newOffset == -1 && // We're moving down and
+		            modeNotes[yVisualWithinOctave] > 1
+		            && // We're not already at the bottom of the scale (apart from the root note) and
+		            modeNotes[yVisualWithinOctave - 1]
+		                < modeNotes[yVisualWithinOctave] - 1 // The next note down has left us space to move down
+		            ));
 }
 
 void Song::removeYNoteFromMode(int yNoteWithinOctave) {
@@ -4808,14 +4819,13 @@ void Song::calculateNoteFrequencies() {
 		noteFrequencyTable[0] = powf(2, (float)firstNote / octaveNumMicrotonalNotes) * baseFrequency;
 
 		for (int i = 1; i < octaveNumMicrotonalNotes; i++) {
-			noteFrequencyTable[i] = multiply_32x32_rshift32_rounded(noteFrequenciesRelativeToKey[i], noteFrequencyTable[0]) << 30;
+			noteFrequencyTable[i] =
+			    multiply_32x32_rshift32_rounded(noteFrequenciesRelativeToKey[i], noteFrequencyTable[0]) << 30;
 		}
 	}
 
 	// TODO: Need to ultimately call Sound::recalculateAllVoicePhaseIncrements() on each Sound to get the change instantly audible.
 }
-
-
 
 NoteWithinOctave Song::getOctaveAndNoteWithin(int noteCode) {
 	NoteWithinOctave toReturn;
@@ -4834,18 +4844,18 @@ void Song::noteCodeToString(int noteCode, char* buffer, int* getLengthWithoutDot
 
 	NoteWithinOctave octaveAndNote = getOctaveAndNoteWithin(noteCode);
 
-    *thisChar = noteCodeToNoteLetter[octaveAndNote.noteWithin];
-    thisChar++;
-    if (noteCodeIsSharp[octaveAndNote.noteWithin]) {
-    	*thisChar = HAVE_OLED ? '#' : '.';
-    	thisChar++;
-    }
-    intToString(octaveAndNote.octave - 2, thisChar, 1);
+	*thisChar = noteCodeToNoteLetter[octaveAndNote.noteWithin];
+	thisChar++;
+	if (noteCodeIsSharp[octaveAndNote.noteWithin]) {
+		*thisChar = HAVE_OLED ? '#' : '.';
+		thisChar++;
+	}
+	intToString(octaveAndNote.octave - 2, thisChar, 1);
 
-    if (getLengthWithoutDot) {
-    	*getLengthWithoutDot = strlen(buffer);
-    	if (noteCodeIsSharp[octaveAndNote.noteWithin]) (*getLengthWithoutDot)--;
-    }
+	if (getLengthWithoutDot) {
+		*getLengthWithoutDot = strlen(buffer);
+		if (noteCodeIsSharp[octaveAndNote.noteWithin]) (*getLengthWithoutDot)--;
+	}
 }
 
 void Song::setNumNotesInTemperament(int newNumNotes) {
@@ -4855,7 +4865,6 @@ void Song::setNumNotesInTemperament(int newNumNotes) {
 	}
 	calculateNoteFrequencies();
 }
-
 
 /*
 	// For each Clip in session and arranger

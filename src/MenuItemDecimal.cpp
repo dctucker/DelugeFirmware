@@ -31,12 +31,9 @@ extern "C" {
 #include "cfunctions.h"
 }
 
-
 MenuItemDecimal::MenuItemDecimal(char const* newName) : MenuItemNumber(newName) {
 	basicDefaultEditPos = 2;
 }
-
-
 
 void MenuItemDecimal::beginSession(MenuItem* navigatedBackwardFrom) {
 	soundEditor.numberScrollAmount = 0;
@@ -192,11 +189,9 @@ void MenuItemDecimal::drawActualValue(bool justDidHorizontalScroll) {
 }
 #endif
 
-
 int MenuItemDecimal::getNumDecimalPlaces() {
 	return basicNumDecimalPlaces;
 }
-
 
 // ----------------------------------------------------------------------
 

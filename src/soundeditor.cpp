@@ -1768,9 +1768,6 @@ MenuItemUnpatchedParam audioClipDelayRateMenu;
 MenuItemUnpatchedParam audioClipLevelMenu;
 MenuItemUnpatchedParamPan audioClipPanMenu;
 
-
-
-
 // Song-level menus ------------------------------------------------
 class MenuItemSongTuning final : public MenuItemDecimal {
 public:
@@ -1784,14 +1781,14 @@ public:
 		basicDefaultEditPos = 1;
 	}
 	void readCurrentValue() {
-		soundEditor.currentValue = ((uint64_t)currentSong->baseFrequency * (uint64_t)6075765868uL + ((uint64_t)1 << 49)) >> 50;
+		soundEditor.currentValue =
+		    ((uint64_t)currentSong->baseFrequency * (uint64_t)6075765868uL + ((uint64_t)1 << 49)) >> 50;
 	}
 	void writeCurrentValue() {
 		currentSong->baseFrequency = (uint32_t)soundEditor.currentValue * 185310;
 		currentSong->calculateNoteFrequencies();
 	}
 } songTuningMenu;
-
 
 MenuItemSubmenu temperamentMenu;
 
@@ -1812,8 +1809,6 @@ public:
 		currentSong->calculateNoteFrequencies();
 	}
 } songTemperamentNumNotesMenu;
-
-
 
 MenuItemFixedPatchCableStrength vibratoMenu;
 
@@ -2928,20 +2923,19 @@ SoundEditor::SoundEditor() {
 	new (&midiSubMenu) MenuItemMIDISub(HAVE_OLED ? "Sub-bank" : "SUB");
 	new (&midiPGMMenu) MenuItemMIDIPGM("PGM");
 
-    // Song-level menu -----------------------------------------------------
-    new (&songTuningMenu) MenuItemSongTuning(HAVE_OLED ? "Tuning" : "TUNE");
+	// Song-level menu -----------------------------------------------------
+	new (&songTuningMenu) MenuItemSongTuning(HAVE_OLED ? "Tuning" : "TUNE");
 
-    new (&songTemperamentNumNotesMenu) MenuItemSongTemperamentNumNotes(HAVE_OLED ? "Num. notes" : "NUM");
+	new (&songTemperamentNumNotesMenu) MenuItemSongTemperamentNumNotes(HAVE_OLED ? "Num. notes" : "NUM");
 
-    static MenuItem* temperamentMenuItems[] = {&songTemperamentNumNotesMenu, NULL};
+	static MenuItem* temperamentMenuItems[] = {&songTemperamentNumNotesMenu, NULL};
 
-    new (&temperamentMenu) MenuItemSubmenu("Temperament", temperamentMenuItems);
+	new (&temperamentMenu) MenuItemSubmenu("Temperament", temperamentMenuItems);
 
-    static MenuItem* rootMenuItemsSong[] = {&songTuningMenu, &temperamentMenu, NULL};
+	static MenuItem* rootMenuItemsSong[] = {&songTuningMenu, &temperamentMenu, NULL};
 
-    // Root menu for Song
-    new (&rootMenuSong) MenuItemSubmenu("Song", rootMenuItemsSong);
-
+	// Root menu for Song
+	new (&rootMenuSong) MenuItemSubmenu("Song", rootMenuItemsSong);
 
 	// Root menu for MIDI / CV
 	static MenuItem* soundEditorRootMenuItemsMIDIOrCV[] = {&midiPGMMenu, &midiBankMenu,          &midiSubMenu, &arpMenu,
