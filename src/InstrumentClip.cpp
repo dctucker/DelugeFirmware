@@ -93,15 +93,14 @@ InstrumentClip::InstrumentClip(Song* song) : Clip(CLIP_TYPE_INSTRUMENT) {
 	onKeyboardScreen = false;
 
 	if (song) {
-		int yNote = ((uint16_t)(song->rootNote + 120) % 12) + 60;
+		int yNote = song->getRootNoteWithinOctave() + 60;
 		if (yNote > 66) yNote -= 12;
-		yScroll = getYVisualFromYNote(
-		    yNote,
-		    song); // This takes into account the rootNote, which could be anything. Must be called after the above stuff is set up
+		// This takes into account the rootNote, which could be anything. Must be called after the above stuff is set up
+		yScroll = getYVisualFromYNote(yNote, song);
 	}
 	else {
-		yScroll =
-		    0; // Only for safety. Shouldn't actually get here if we're not going to overwrite this elsewhere I think...
+		// Only for safety. Shouldn't actually get here if we're not going to overwrite this elsewhere I think...
+		yScroll = 0;
 	}
 	yScrollKeyboardScreen = 60 - (displayHeight >> 2) * KEYBOARD_ROW_INTERVAL;
 
@@ -1023,8 +1022,9 @@ ModelStackWithNoteRow* InstrumentClip::getOrCreateNoteRowForYNote(int yNote, Mod
 					void* consMemory = generalMemoryAllocator.alloc(sizeof(ConsequenceScaleAddNote));
 
 					if (consMemory) {
+						NoteWithinOctave octaveAndNote = modelStack->song->getOctaveAndNoteWithin(yNote);
 						ConsequenceScaleAddNote* newConsequence =
-						    new (consMemory) ConsequenceScaleAddNote((yNote + 120) % 12);
+						    new (consMemory) ConsequenceScaleAddNote(octaveAndNote.noteWithin);
 						action->addConsequence(newConsequence);
 					}
 
@@ -1170,17 +1170,21 @@ void InstrumentClip::noteRemovedFromMode(int yNoteWithinOctave, Song* song) {
 	for (int i = 0; i < noteRows.getNumElements();) {
 		NoteRow* thisNoteRow = noteRows.getElement(i);
 
-		if ((thisNoteRow->y + 120) % 12 == yNoteWithinOctave) {
+		NoteWithinOctave octaveAndNote = song->getOctaveAndNoteWithin(thisNoteRow->y);
+
+		if (octaveAndNote.noteWithin == yNoteWithinOctave) {
 			noteRows.deleteNoteRowAtIndex(i);
 		}
 		else i++;
 	}
 }
 
+// Only call this if using 12-tone system.
 void InstrumentClip::seeWhatNotesWithinOctaveArePresent(bool notesWithinOctavePresent[], int newRootNote, Song* song,
                                                         bool deleteEmptyNoteRows) {
-	song->rootNote =
-	    newRootNote; // Not ideal to be setting the global root note here... but as it happens, there's no scenario (currently) where this would cause problems
+
+	// Not ideal to be setting the global root note here... but as it happens, there's no scenario (currently) where this would cause problems
+	song->rootNote = newRootNote;
 
 	for (int i = 0; i < noteRows.getNumElements();) {
 		NoteRow* thisNoteRow = noteRows.getElement(i);
@@ -1284,6 +1288,8 @@ int InstrumentClip::getYNoteFromYVisual(int yVisual, Song* song) {
 }
 
 int InstrumentClip::guessRootNote(Song* song, int previousRoot) {
+	if (song->octaveNumMicrotonalNotes != 12) return previousRoot;
+
 	bool notesPresent[12];
 	for (int i = 0; i < 12; i++)
 		notesPresent[i] = false;
@@ -1295,11 +1301,9 @@ int InstrumentClip::guessRootNote(Song* song, int previousRoot) {
 	// If no NoteRows, not much we can do
 	if (noteRows.getNumElements() == 0) return previousRoot;
 
-	previousRoot = previousRoot % 12;
-	if (previousRoot < 0) previousRoot += 12;
+	NoteWithinOctave previousRootOctaveAndNote = song->getOctaveAndNoteWithin(previousRoot);
 
-	int lowestNote = noteRows.getElement(0)->getNoteCode() % 12;
-	if (lowestNote < 0) lowestNote += 12;
+	NoteWithinOctave lowestNoteOctaveAndNote = song->getOctaveAndNoteWithin(noteRows.getElement(0)->getNoteCode());
 
 	uint8_t lowestIncompatibility = 255;
 	uint8_t mostViableRoot = 0;
@@ -1329,7 +1333,8 @@ int InstrumentClip::guessRootNote(Song* song, int previousRoot) {
 
 		if (incompatibility < lowestIncompatibility
 		    || (incompatibility == lowestIncompatibility
-		        && (root == lowestNote || root == previousRoot // Favour the previous root and the lowest note
+		        && (root == lowestNoteOctaveAndNote.noteWithin
+		            || root == previousRootOctaveAndNote.noteWithin // Favour the previous root and the lowest note
 		            ))) {
 			lowestIncompatibility = incompatibility;
 			mostViableRoot = root;
@@ -2702,7 +2707,9 @@ noteRowFailed : {}
 		chosenNoteRow = noteRows.getElement(0);
 		chosenNoteRowIndex = 0;
 useRootNote:
-		chosenNoteRow->y = (song->rootNote % 12) + 60; // Just do this even if we're not in key-mode
+		int rootNoteWithinOctave = song->getRootNoteWithinOctave();
+
+		chosenNoteRow->y = rootNoteWithinOctave + 60; // Just do this even if we're not in key-mode
 	}
 
 	// Now, give all the other NoteRows yNotes

@@ -47,6 +47,8 @@ class AudioOutput;
 class ModelStack;
 class ModelStackWithTimelineCounter;
 
+#define OCTAVE_MAX_NUM_MICROTONAL_NOTES 64
+
 class Section {
 public:
 	LearnedMIDI launchMIDICommand;
@@ -61,7 +63,13 @@ struct BackedUpParamManager {
 	ParamManager paramManager;
 };
 
+struct NoteWithinOctave {
+	int octave;
+	int noteWithin;
+};
+
 class Song final : public TimelineCounter {
+
 public:
 	Song();
 	~Song();
@@ -194,6 +202,12 @@ public:
 	uint32_t getInputTickScale();
 	Clip* getSyncScalingClip();
 	void setInputTickScaleClip(Clip* clip);
+	int32_t noteFrequenciesRelativeToKey[OCTAVE_MAX_NUM_MICROTONAL_NOTES];
+	int8_t centAdjustForNotesInTemperament[OCTAVE_MAX_NUM_MICROTONAL_NOTES];
+	int32_t noteFrequencyTable[OCTAVE_MAX_NUM_MICROTONAL_NOTES];
+	int octaveNumMicrotonalNotes;
+	int baseFrequency;
+	bool isEqualTemperament;
 
 	void setClipLength(Clip* clip, uint32_t newLength, Action* action, bool mayReSyncClip = true);
 	void doubleClipLength(InstrumentClip* clip, Action* action = NULL);
@@ -300,6 +314,12 @@ public:
 	void midiDeviceBendRangeUpdatedViaMessage(ModelStack* modelStack, MIDIDevice* device, int channelOrZone,
 	                                          int whichBendRange, int bendSemitones);
 	int addInstrumentsToFileItems(int instrumentType);
+
+	void calculateNoteFrequencies();
+	NoteWithinOctave getOctaveAndNoteWithin(int noteCode);
+	int getRootNoteWithinOctave();
+	void noteCodeToString(int noteCode, char* buffer, int* getLengthWithoutDot = NULL);
+	void setNumNotesInTemperament(int newNumNotes);
 
 	uint32_t getQuarterNoteLength();
 	uint32_t getBarLength();
