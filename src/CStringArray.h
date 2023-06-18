@@ -28,6 +28,7 @@ public:
 	int search(char const* searchString, bool* foundExact = NULL);
 
 private:
+	inline int cmp(int, int);
 	int partitionForStrings(int low, int high);
 	void quickSortForStrings(int low, int high);
 };

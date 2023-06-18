@@ -25,10 +25,14 @@
 
 int workCount;
 
+inline int CStringArray::cmp(int a, int b) {
+	return strcmpspecial(*(char const**)getElementAddress(a), *(char const**)getElementAddress(b), true);
+}
+
 // This uses Hoare's partitioning scheme, which has the advantage that it won't go slow if the elements are already sorted - which they often will be as filenames read off an SD card.
 int CStringArray::partitionForStrings(int low, int high) {
-	char const* pivotString = *(char const**)getElementAddress(
-	    (low + high) >> 1); // Pivot - rightmost element. Though this is very bad if the array is already sorted...
+	// Pivot - rightmost element. Though this is very bad if the array is already sorted...
+	int pivot = (low + high) >> 1;
 
 	int i = low - 1;
 	int j = high + 1;
@@ -36,11 +40,11 @@ int CStringArray::partitionForStrings(int low, int high) {
 	while (true) {
 		do {
 			i++;
-		} while (strcmpspecial(*(char const**)getElementAddress(i), pivotString, true) < 0);
+		} while (cmp(i, pivot) < 0);
 
 		do {
 			j--;
-		} while (strcmpspecial(*(char const**)getElementAddress(j), pivotString, true) > 0);
+		} while (cmp(j, pivot) > 0);
 
 		if (i >= j) return j;
 
