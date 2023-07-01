@@ -1,30 +1,24 @@
 #pragma once
-#include "wren.hpp"
+#include "wren/Wren++.h"
 
 #define SCRIPT_BUFFER_SIZE 1024
 
 class Wren {
 public:
 	bool first_run;
-	WrenVM* vm;
+	wrenpp::VM vm;
 
 	struct {
-		WrenHandle *Deluge, *init;
-	} handles;
+		wrenpp::Method Deluge_init;
+	} methods;
 
 	Wren();
-	~Wren();
-	void setupHandles();
-	void releaseHandles();
 	void tick();
 	void setup();
 	void runInit();
-	inline WrenInterpretResult interpret(const char*, const char*);
+
+	static void configure();
 
 private:
-	static void errorFn(WrenVM* vm, WrenErrorType errorType, const char* mod, const int line, const char* msg);
-	static void writeFn(WrenVM* vm, const char* text);
-	static WrenLoadModuleResult loadModuleFn(WrenVM* vm, const char* name);
-	static void loadModuleComplete(WrenVM* vm, const char* mod, WrenLoadModuleResult result);
 	static char* getSourceForModule(const char*);
 };
