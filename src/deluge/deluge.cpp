@@ -861,6 +861,7 @@ resetSettings:
 	sdRoutineLock = false; // Allow SD routine to start happening
 
 	Wren* wren = new Wren();
+	Buttons::wren = wren;
 
 	while (1) {
 
