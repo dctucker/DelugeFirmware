@@ -32,7 +32,7 @@ namespace Buttons {
 bool recordButtonPressUsedUp;
 uint32_t timeRecordButtonPressed;
 bool buttonStates[NUM_BUTTON_COLS + 1][NUM_BUTTON_ROWS]; // The extra col is for "fake" buttons
-Wren* wren;
+Wren::VM* wren;
 
 int buttonAction(hid::Button b, bool on, bool inCardRoutine) {
 	wren->buttonAction(b, on);
