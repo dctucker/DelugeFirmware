@@ -37,4 +37,4 @@ protected:
 	static WrenForeignClassMethods bindForeignClassFn(WrenVM* vm, const char* mod, const char* cls);
 };
 
-}
+} // namespace Wren
