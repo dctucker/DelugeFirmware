@@ -18,8 +18,8 @@
 #ifndef BUTTONS_H_
 #define BUTTONS_H_
 
-#include "vm/wrenimpl.h"
 #include "RZA1/system/r_typedefs.h"
+#include "vm/wrenimpl.h"
 #include "button.h"
 
 namespace Buttons {
@@ -31,10 +31,6 @@ bool isButtonPressed(hid::Button b);
 bool isShiftButtonPressed();
 bool isNewOrShiftButtonPressed();
 void noPressesHappening(bool inCardRoutine);
-
-button_s charToButton(uint8_t value);
-uint8_t buttonToChar(button_s b);
-bool isButton(uint8_t value);
 
 extern bool recordButtonPressUsedUp;
 extern Wren::VM* wren;
