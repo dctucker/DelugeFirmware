@@ -1,7 +1,9 @@
 #pragma once
 
+#include <initializer_list>
 #include "RZA1/system/r_typedefs.h"
 #include "definitions.h"
+#include "hid/button.h"
 
 namespace hid {
 
@@ -47,6 +49,8 @@ enum KnownButtons : Button {
 	TEMPO_ENC         = fromXY(tempoEncButtonX, tempoEncButtonY),
 };
 // clang-format on
+
+constexpr Button all_KnownButtons[] = { AFFECT_ENTIRE, SESSION_VIEW, CLIP_VIEW, SYNTH, KIT, MIDI, CV, KEYBOARD, SCALE_MODE, CROSS_SCREEN_EDIT, BACK, LOAD, SAVE, LEARN, TAP_TEMPO, SYNC_SCALING, TRIPLETS, PLAY, RECORD, SHIFT, X_ENC, Y_ENC, MOD_ENCODER_0, MOD_ENCODER_1, SELECT_ENC, TEMPO_ENC };
 
 constexpr uint8_t fromChar(uint8_t c) {
 	return static_cast<uint8_t>(c);

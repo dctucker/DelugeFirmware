@@ -11,15 +11,6 @@ const char* mainModuleSource =
     ;
 #include "buttons.h"
 
-ButtonIndex findButton(uint8_t x, uint8_t y) {
-	for (int i = 1; i < ButtonIndex::maxButtonIndex; i++) {
-		if (buttonValues[i].x == x and buttonValues[i].y == y) {
-			return (ButtonIndex)i;
-		}
-	}
-	return ButtonIndex::none;
-}
-
 // clang-format off
 ModuleMap modules() {
 	static const ModuleMap map_ = {
@@ -34,11 +25,9 @@ ModuleMap modules() {
 				{"pressButton(_,_)", {false,
 					[](WrenVM* vm) -> void {
 						wrenEnsureSlots(vm, 3);
-						struct button_s* button = (struct button_s*) wrenGetSlotForeign(vm, 1);
-						//int index = (int) wrenGetSlotDouble(vm, 1);
-						//const struct button_s* button = &WrenAPI::buttonValues[index];
+						auto button = (hid::Button*)wrenGetSlotForeign(vm, 1);
 						bool down = (bool)wrenGetSlotBool(vm, 2);
-						Buttons::buttonActionNoRe(button->x, button->y, down, false);
+						Buttons::buttonActionNoRe(*button, down, false);
 					}
 				}},
 			}},
@@ -46,9 +35,8 @@ ModuleMap modules() {
 				{"index", {false,
 					[](WrenVM* vm) -> void {
 						wrenEnsureSlots(vm, 1);
-						struct button_s* button = (struct button_s*) wrenGetSlotForeign(vm, 0);
-						ButtonIndex index = findButton(button->x, button->y);
-						wrenSetSlotDouble(vm, 0, (int)index);
+						auto button = (char*) wrenGetSlotForeign(vm, 0);
+						wrenSetSlotBytes(vm, 0, button, 1);
 					}
 				}},
 			}},

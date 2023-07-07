@@ -31,10 +31,6 @@ enum ButtonIndex {
 	maxButtonIndex,
 };
 
-struct button_s {
-	uint8_t x, y;
-};
-
 typedef struct {
 	bool isStatic;
 	WrenForeignMethodFn fn;
@@ -46,7 +42,6 @@ typedef std::map<std::string, ClassMap> ModuleMap;
 ModuleMap modules();
 ButtonIndex findButton(uint8_t x, uint8_t y);
 extern const char* mainModuleSource;
-extern const char* buttonsSource;
-extern const button_s buttonValues[];
+// extern const char* buttonsSource;
 } // namespace API
 } // namespace Wren

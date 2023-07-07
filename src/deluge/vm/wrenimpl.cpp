@@ -22,7 +22,8 @@ void VM::print(const char* text) {
 			empty = false;
 		}
 	}
-	if (empty) return;
+	if (empty)
+		return;
 
 #if HAVE_OLED
 	numericDriver.displayPopup(text);
@@ -84,11 +85,11 @@ void VM::errorFn(WrenVM* vm, WrenErrorType errorType, const char* mod, const int
 	//f_close(&fil);
 }
 
-void VM::buttonAction(int x, int y, bool on) {
-	API::ButtonIndex index = Wren::API::findButton(x, y);
+void VM::buttonAction(hid::Button b, bool on) {
 	wrenEnsureSlots(vm, 3);
 	wrenSetSlotHandle(vm, 0, handles.Deluge);
-	wrenSetSlotDouble(vm, 1, index);
+	const char bb = b;
+	wrenSetSlotBytes(vm, 1, &bb, 1);
 	wrenSetSlotBool(vm, 2, on);
 	(void)wrenCall(vm, handles.buttonAction);
 }
@@ -157,9 +158,10 @@ WrenForeignClassMethods VM::bindForeignClassFn(WrenVM* vm, const char* moduleNam
 		if (cls == "Button") {
 			return {
 			    .allocate = [](WrenVM* vm) -> void {
-				    API::button_s* data = (API::button_s*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(API::button_s));
-				    int index = (int)wrenGetSlotDouble(vm, 1);
-				    *data = API::buttonValues[index];
+					int len;
+				    auto data = (hid::Button*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(hid::Button));
+				    auto value = (hid::Button*)(wrenGetSlotBytes(vm, 1, &len)[0]);
+				    *data = value[0];
 			    },
 			    .finalize = [](void* data) -> void { data = NULL; },
 			};
@@ -208,11 +210,65 @@ void VM::tick() {
 }
 
 void VM::setup() {
-	(void)interpret("main", Wren::API::buttonsSource);
+	setupButtons();
 	(void)interpret("main", Wren::API::mainModuleSource);
 
 	char* source = getSourceForModule("init");
 	(void)interpret("main", source);
+}
+
+void VM::setupButtons() {
+	static char src[] = R"(
+foreign class Button {
+  construct new(index) {}
+  foreign index
+}
+class Buttons {
+  static setup(known) {
+    __btns = {}
+    for (b in known.bytes) {
+      var k = String.fromByte(b)
+      __btns[k] = Button.new(k)
+    }
+  }
+  static affectEntire { __btns["\x00"] }
+  static song { __btns["\x00"] }
+  static clip { __btns["\x00"] }
+  static synth { __btns["\x00"] }
+  static kit { __btns["\x00"] }
+  static midi { __btns["\x00"] }
+  static cv { __btns["\x00"] }
+  static keyboard { __btns["\x00"] }
+  static scale { __btns["\x00"] }
+  static crossScreen { __btns["\x00"] }
+  static back { __btns["\x00"] }
+  static load { __btns["\x00"] }
+  static save { __btns["\x00"] }
+  static learn { __btns["\x00"] }
+  static tapTempo { __btns["\x00"] }
+  static syncScaling { __btns["\x00"] }
+  static triplets { __btns["\x00"] }
+  static play { __btns["\x00"] }
+  static record { __btns["\x00"] }
+  static shift { __btns["\x00"] }
+}
+)";
+	char *s = src;
+	int j = 0;
+	char hex[2];
+	for (auto i = 0; i < strlen(src); i++, s++) {
+		if (*s != '\\') continue;
+		sprintf(hex, "%02x", hid::button::all_KnownButtons[j++]);
+		*(s+2) = hex[0];
+		*(s+3) = hex[1];
+	}
+
+	(void)interpret("main", src);
+
+	auto buttons = (const char*)hid::button::all_KnownButtons;
+	wrenSetSlotHandle(vm, 0, handles.Buttons);
+	wrenSetSlotBytes(vm, 1, buttons, sizeof(buttons));
+	(void)wrenCall(vm, handles.setup);
 }
 
 void VM::init() {
@@ -232,6 +288,10 @@ void VM::setupHandles() {
 	wrenGetVariable(vm, "main", "Button", 0);
 	handles.Button = wrenGetSlotHandle(vm, 0);
 	handles.buttonAction = wrenMakeCallHandle(vm, "buttonAction(_,_)");
+
+	wrenGetVariable(vm, "main", "Buttons", 0);
+	handles.Buttons = wrenGetSlotHandle(vm, 0);
+	handles.setup = wrenMakeCallHandle(vm, "setup(_)");
 }
 
 void VM::releaseHandles() {
