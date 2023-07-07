@@ -22,7 +22,8 @@ void VM::print(const char* text) {
 			empty = false;
 		}
 	}
-	if (empty) return;
+	if (empty)
+		return;
 
 #if HAVE_OLED
 	numericDriver.displayPopup(text);
