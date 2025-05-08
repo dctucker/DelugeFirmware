@@ -47,7 +47,8 @@ class AudioFileHolder;
 class MIDIDevice;
 namespace deluge::gui::menu_item {
 enum class RangeEdit : uint8_t;
-}
+enum class ProgramEdit : uint8_t;
+} // namespace deluge::gui::menu_item
 
 class SoundEditor final : public UI {
 public:
@@ -69,6 +70,7 @@ public:
 	int16_t currentMultiRangeIndex;
 	MIDIDevice* currentMIDIDevice;
 	deluge::gui::menu_item::RangeEdit editingRangeEdge;
+	deluge::gui::menu_item::ProgramEdit editingProgramEdge;
 
 	ActionResult buttonAction(deluge::hid::Button b, bool on, bool inCardRoutine);
 	ActionResult padAction(int32_t x, int32_t y, int32_t velocity);

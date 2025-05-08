@@ -184,6 +184,8 @@ public:
 	virtual void offerReceivedAftertouch(ModelStackWithTimelineCounter* modelStackWithTimelineCounter,
 	                                     MIDIDevice* fromDevice, int32_t channel, int32_t value, int32_t noteCode,
 	                                     bool* doingMidiThru) {}
+	virtual void offerReceivedPC(ModelStackWithTimelineCounter* modelStackWithTimelineCounter, MIDIDevice* fromDevice,
+	                             uint8_t channel, uint8_t value, bool* doingMidiThru) {}
 
 	virtual void stopAnyAuditioning(ModelStack* modelStack) {}
 	virtual void offerBendRangeUpdate(ModelStack* modelStack, MIDIDevice* device, int32_t channelOrZone,
