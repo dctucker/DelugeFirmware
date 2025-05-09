@@ -1222,6 +1222,15 @@ bool SoundEditor::midiCCReceived(MIDIDevice* fromDevice, uint8_t channel, uint8_
 		getCurrentMenuItem()->learnCC(fromDevice, channel, ccNumber, value);
 		return true;
 	}
+	if (getCurrentMenuItem() == &midiProgramMenu) {
+		if (playbackHandler.recording != RecordingMode::OFF) {
+			if (ccNumber == 0 || ccNumber == 32) {
+				midiProgramMenu.readCurrentValue();
+				midiProgramMenu.drawValue();
+				return false; // allow flow into MelodicInstrument
+			}
+		}
+	}
 
 	return false;
 }

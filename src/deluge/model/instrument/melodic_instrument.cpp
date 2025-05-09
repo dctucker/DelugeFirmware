@@ -389,6 +389,22 @@ void MelodicInstrument::receivedCC(ModelStackWithTimelineCounter* modelStackWith
 			if (doingMidiThru && ((MIDIInstrument*)this)->channel == channel) {
 				*doingMidiThru = false;
 			}
+			if (playbackHandler.recording != RecordingMode::OFF) {
+				if(ccNumber == 0) {
+					((InstrumentClip*)activeClip)->midiBank = value;
+					if (getCurrentUI() == &soundEditor) {
+						soundEditor.midiCCReceived(fromDevice, channel, ccNumber, value);
+					}
+					return;
+				}
+				else if(ccNumber == 32) {
+					((InstrumentClip*)activeClip)->midiSub = value;
+					if (getCurrentUI() == &soundEditor) {
+						soundEditor.midiCCReceived(fromDevice, channel, ccNumber, value);
+					}
+					return;
+				}
+			}
 		}
 		if (ccNumber == CC_EXTERNAL_MOD_WHEEL) {
 			// this is the same range as mpe Y axis but unipolar
