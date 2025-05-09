@@ -407,6 +407,32 @@ void MelodicInstrument::receivedCC(ModelStackWithTimelineCounter* modelStackWith
 	}
 }
 
+void MelodicInstrument::offerReceivedPC(ModelStackWithTimelineCounter* modelStackWithTimelineCounter,
+                                        MIDIDevice* fromDevice, uint8_t channel, uint8_t program, bool* doingMidiThru) {
+	MIDIMatchType match = midiInput.checkMatch(fromDevice, channel);
+	if (match != MIDIMatchType::NO_MATCH) {
+		receivedPC(modelStackWithTimelineCounter, fromDevice, match, channel, program, doingMidiThru);
+	}
+}
+
+void MelodicInstrument::receivedPC(ModelStackWithTimelineCounter* modelStackWithTimelineCounter, MIDIDevice* fromDevice,
+                                   MIDIMatchType match, uint8_t channel, uint8_t program, bool* doingMidiThru) {
+	if (match == MIDIMatchType::CHANNEL) {
+		// If it's a MIDI Clip...
+		if (type == OutputType::MIDI_OUT) {
+			if (doingMidiThru && ((MIDIInstrument*)this)->channel == channel) {
+				*doingMidiThru = false;
+			}
+			if (playbackHandler.recording != RecordingMode::OFF) {
+				((InstrumentClip*)activeClip)->midiPGM = program;
+				if (getCurrentUI() == &soundEditor) {
+					soundEditor.midiPCReceived(fromDevice, channel, program);
+				}
+			}
+		}
+	}
+}
+
 void MelodicInstrument::possiblyRefreshAutomationEditorGrid(int32_t ccNumber) {
 	// if you're in automation midi clip view and editing the same CC that was just updated
 	// by a learned midi knob, then re-render the pads on the automation editor grid

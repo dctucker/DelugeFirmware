@@ -1227,6 +1227,18 @@ bool SoundEditor::midiCCReceived(MIDIDevice* fromDevice, uint8_t channel, uint8_
 }
 
 // Returns true if some use was made of the message here
+bool SoundEditor::midiPCReceived(MIDIDevice* fromDevice, uint8_t channel, uint8_t program) {
+
+	if (getCurrentMenuItem() == &midiProgramMenu) {
+		midiProgramMenu.readCurrentValue();
+		midiProgramMenu.drawValue();
+		return true;
+	}
+
+	return false;
+}
+
+// Returns true if some use was made of the message here
 bool SoundEditor::pitchBendReceived(MIDIDevice* fromDevice, uint8_t channel, uint8_t data1, uint8_t data2) {
 
 	if (currentUIMode == UI_MODE_MIDI_LEARN && !Buttons::isShiftButtonPressed()) {

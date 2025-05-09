@@ -3,6 +3,7 @@
 #include "gui/menu_item/audio_clip/sample_marker_editor.h"
 #include "gui/menu_item/defaults/swing_interval.h"
 #include "gui/menu_item/firmware/version.h"
+#include "gui/menu_item/midi/program.h"
 #include "gui/menu_item/osc/source/wave_index.h"
 #include "gui/menu_item/osc/sync.h"
 #include "gui/menu_item/patch_cables.h"
@@ -45,6 +46,8 @@ extern MenuItem* paramShortcutsForSounds[15][8];
 extern MenuItem* paramShortcutsForAudioClips[15][8];
 extern MenuItem* paramShortcutsForSongView[15][8];
 extern MenuItem* paramShortcutsForKitGlobalFX[15][8];
+
+extern deluge::gui::menu_item::midi::Program midiProgramMenu;
 
 void setOscillatorNumberForTitles(int32_t);
 void setModulatorNumberForTitles(int32_t);

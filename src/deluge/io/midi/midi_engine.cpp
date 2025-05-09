@@ -1073,7 +1073,7 @@ void MidiEngine::midiMessageReceived(MIDIDevice* fromDevice, uint8_t statusType,
 				break;
 
 			case 0x0C: // Program change message
-				playbackHandler.programChangeReceived(fromDevice, channel, data1);
+				playbackHandler.programChangeReceived(fromDevice, channel, data1, &shouldDoMidiThruNow);
 				break;
 
 			case 0x0D: // Channel pressure
