@@ -389,20 +389,22 @@ void MelodicInstrument::receivedCC(ModelStackWithTimelineCounter* modelStackWith
 			if (doingMidiThru && ((MIDIInstrument*)this)->channel == channel) {
 				*doingMidiThru = false;
 			}
+			// If Record is illuminated ...
 			if (playbackHandler.recording != RecordingMode::OFF) {
+				// ... and Bank MSB/LSB, store the values in the active clip and update the display if needed.
+				bool needUpdate = true;
 				if(ccNumber == 0) {
 					((InstrumentClip*)activeClip)->midiBank = value;
-					if (getCurrentUI() == &soundEditor) {
-						soundEditor.midiCCReceived(fromDevice, channel, ccNumber, value);
-					}
-					return;
 				}
 				else if(ccNumber == 32) {
 					((InstrumentClip*)activeClip)->midiSub = value;
-					if (getCurrentUI() == &soundEditor) {
-						soundEditor.midiCCReceived(fromDevice, channel, ccNumber, value);
-					}
-					return;
+				}
+				else {
+					needUpdate = false;
+				}
+
+				if (needUpdate && getCurrentUI() == &soundEditor) {
+					soundEditor.midiCCReceived(fromDevice, channel, ccNumber, value);
 				}
 			}
 		}
